@@ -11,10 +11,11 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text BestScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
-    private int m_Points;
+    private int m_Points = 0;
     
     private bool m_GameOver = false;
 
@@ -36,10 +37,18 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+        ScoreText.text = $"{BestScoreManager.SharedInstance.currentPlayerName}'s Score : {m_Points}";
+        BestScoreText.text = $"Best Score: {BestScoreManager.SharedInstance.bestPlayerName}: {BestScoreManager.SharedInstance.bestPlayerScore}";
     }
 
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            SavePoints();
+            SceneManager.LoadScene(0);
+        }
+
         if (!m_Started)
         {
             if (Input.GetKeyDown(KeyCode.Space))
@@ -65,12 +74,24 @@ public class MainManager : MonoBehaviour
     void AddPoint(int point)
     {
         m_Points += point;
-        ScoreText.text = $"Score : {m_Points}";
+        ScoreText.text = $"{BestScoreManager.SharedInstance.currentPlayerName}'s Score : {m_Points}";
     }
 
     public void GameOver()
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        SavePoints();
+    }
+
+    private void SavePoints()
+    {
+        if (m_Points > BestScoreManager.SharedInstance.bestPlayerScore)
+        {
+            BestScoreManager.SharedInstance.bestPlayerName = BestScoreManager.SharedInstance.currentPlayerName;
+            BestScoreManager.SharedInstance.bestPlayerScore = m_Points;
+            BestScoreText.text = $"Best Score: {BestScoreManager.SharedInstance.bestPlayerName}: {BestScoreManager.SharedInstance.bestPlayerScore}";
+            BestScoreManager.SharedInstance.SaveBestScore();
+        }
     }
 }
